@@ -200,7 +200,7 @@ class WebPPicture:
         if lib.WebPPictureInit(ptr) == 0:
             raise WebPError('version mismatch')
         
-        if arr.shape != 3:
+        if len(arr.shape) < 3:
             raise WebPError('unsupported image mode: ' + pilmode)
 
         ptr.height, ptr.width, bytes_per_pixel = arr.shape
