@@ -180,7 +180,7 @@ class WebPPicture:
         self.ptr.writer = ffi.addressof(lib, 'WebPMemoryWrite')
         self.ptr.custom_ptr = writer.ptr
         if lib.WebPEncode(config.ptr, self.ptr) == 0:
-            raise WebPError('encoding error: ' + self.ptr.error_code)
+            raise WebPError('encoding error: ' + getattr(self.ptr, "error_code", ""))
         return writer.to_webp_data()
 
     @staticmethod
@@ -313,11 +313,11 @@ class WebPAnimEncoder:
         if config is None:
             config = WebPConfig.new()
         if lib.WebPAnimEncoderAdd(self.ptr, frame.ptr, timestamp_ms, config.ptr) == 0:
-            raise WebPError('encoding error: ' + self.ptr.error_code)
+            raise WebPError('encoding error: ' + getattr(self.ptr, "error_code", ""))
 
     def assemble(self, end_timestamp_ms):
         if lib.WebPAnimEncoderAdd(self.ptr, ffi.NULL, end_timestamp_ms, ffi.NULL) == 0:
-            raise WebPError('encoding error: ' + self.ptr.error_code)
+            raise WebPError('encoding error: ' + getattr(self.ptr, "error_code", ""))
         _webp_data = _WebPData()
         if lib.WebPAnimEncoderAssemble(self.ptr, _webp_data.ptr) == 0:
             raise WebPError('error assembling animation')
