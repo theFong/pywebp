@@ -199,6 +199,10 @@ class WebPPicture:
         ptr = ffi.new('WebPPicture*')
         if lib.WebPPictureInit(ptr) == 0:
             raise WebPError('version mismatch')
+        
+        if arr.shape != 3:
+            raise WebPError('unsupported image mode: ' + pilmode)
+
         ptr.height, ptr.width, bytes_per_pixel = arr.shape
 
         if pilmode is None:
@@ -225,6 +229,7 @@ class WebPPicture:
 
     @staticmethod
     def from_pil(img):
+        img = convert_to_supported_mode(img)
         return WebPPicture.from_numpy(np.asarray(img), pilmode=img.mode)
 
 
@@ -554,8 +559,25 @@ def save_image(img, file_path, **kwargs):
         file_path (str): File to save to.
         kwargs: Keyword arguments for saving the image (see `imwrite`).
     """
+
+    img = convert_to_supported_mode(img)
+
     imwrite(file_path, np.asarray(img), pilmode=img.mode, **kwargs)
 
+def convert_to_supported_mode(img):
+    """Convert PIL Image to supported mode.
+
+    Args:
+        img (pil.Image): Image to convert.
+
+    Returns:
+        PIL.Image: The converted image if neccessary.
+    """
+
+    if img.mode not in ['RGBA', 'RBG']:
+        img = img.convert(mode='RGBA')
+    return img
+        
 
 def load_image(file_path, mode='RGBA'):
     """Load from file and decode PIL Image with WebP.
@@ -579,7 +601,7 @@ def save_images(imgs, file_path, **kwargs):
         file_path (str): File to save to.
         kwargs: Keyword arguments for saving the images (see `mimwrite`).
     """
-    arrs = [np.asarray(img) for img in imgs]
+    arrs = [np.asarray(convert_to_supported_mode(img)) for img in imgs]
     return mimwrite(file_path, arrs, **kwargs, pilmode=imgs[0].mode)
 
 
